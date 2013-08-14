@@ -8,10 +8,10 @@ var http = require('http')
   , querystring = require('querystring')
   , crypto = require('crypto')
 
-  , oauth = require('oauth-sign')
-  , hawk = require('hawk')
-  , aws = require('aws-sign')
-  , httpSignature = require('http-signature')
+  , oauth = false
+  , hawk = false
+  , aws = false
+  , httpSignature = false
   , uuid = require('node-uuid')
   , mime = require('mime')
   , tunnel = require('tunnel-agent')
@@ -40,6 +40,21 @@ try {
   tls = require('tls')
 } catch (e) {}
 
+try {
+  oauth = require('oauth-sign')
+} catch (e) {}
+
+try {
+  hawk = require('hawk')
+} catch (e) {}
+
+try {
+  aws = require('aws-sign')
+} catch (e) {}
+
+try {
+  httpSignature = require('http-signature')
+} catch (e) {}
 
 
 // Hacky fix for pre-0.4.4 https
@@ -261,19 +276,23 @@ Request.prototype.init = function (options) {
 
   // Auth must happen last in case signing is dependent on other headers
   if (options.oauth) {
-    self.oauth(options.oauth)
+    if (oauth) self.oauth(options.oauth)
+    else throw new Error("Missing oauth-sign module")
   }
 
   if (options.aws) {
-    self.aws(options.aws)
+    if (aws) self.aws(options.aws)
+    else throw new Error("Missing aws-sign module")
   }
 
   if (options.hawk) {
-    self.hawk(options.hawk)
+    if (hawk) self.hawk(options.hawk)
+    else throw new Error("Missing hawk module")
   }
 
   if (options.httpSignature) {
-    self.httpSignature(options.httpSignature)
+    if (httpSignature) self.httpSignature(options.httpSignature)
+    else throw new Error("Missing http-signature module")
   }
 
   if (options.auth) {
